@@ -10,8 +10,8 @@ x1 db ?
 y1 db ?
 x2 db ?
 y2 db ?
-mat1 db 100 dup(0)
-mat2 db 100 dup(0)
+mat1 db 82 dup(0FFh)
+mat2 db 82 dup(0FFh)
 crlf db 13,10,'$'
 space db ' $'            
 msgInput1 db 13,10,13,10,'please enter the values in matrix 1:',13,10,'$'  
@@ -38,7 +38,6 @@ start:
     push offset msgInput1
     call matrixInput
     
-    xor dx,dx
     lea dx,mat2
     push dx
     xor ax,ax
@@ -48,7 +47,17 @@ start:
     mov al,x2
     push ax
     push offset msgInput2
-    call matrixInput  
+    call matrixInput
+    
+    push offset mat1
+    call asciiToNumber
+    
+    lea dx,mat2
+    push dx
+    call asciiToNumber
+                   
+    push offset mat1
+    call numberToAscii 
     
     
 exit:
@@ -76,10 +85,9 @@ dimantionInput proc
     push bx
     push dx
     jmp input
-    invalid:  
-        lea dx,backspace
-        mov ah,09h
-        int 21h
+    invalid:
+        push offset backspace  
+        call print
     input:
         mov ah,1
         int 21h
@@ -141,8 +149,17 @@ matrixInput proc
     row:
         xor dx,dx
         collumn:
+            jmp continue
+            invalid1:
+                push offset backspace
+                call print
+            continue: 
             mov ah,1
             int 21h
+            cmp al,'1'
+            jb invalid1
+            cmp al,'9'
+            ja invalid1
             mov [bx],al
             inc bx                        
             push offset space
@@ -163,5 +180,35 @@ matrixInput proc
     pop bp
     ret 8    
 matrixInput endp
+
+asciiToNumber proc
+    push bp
+    mov bp,sp
+    push bx
+    mov bx,[bp+4]
+    looping:
+        sub [bx],'0'
+        inc bx
+        cmp [bx],0ffh
+        jne looping
+    pop bx
+    pop bp
+    ret 2
+asciiToNumber endp
+
+numberToAscii proc
+    push bp
+    mov bp,sp
+    push bx
+    mov bx,[bp+4]
+    looping1:
+        add [bx],'0'
+        inc bx
+        cmp [bx],0ffh
+        jne looping1
+    pop bx
+    pop bp
+    ret 2
+numberToAscii endp
 
 END
