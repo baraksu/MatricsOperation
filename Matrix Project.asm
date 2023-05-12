@@ -12,8 +12,10 @@ x2 db ?
 y2 db ?
 mat1 db 82 dup(0FFh)
 mat2 db 82 dup(0FFh)
+mat3 db 82 dup(0FFh)
 crlf db 13,10,'$'
-space db ' $'            
+space db ' $'
+msgExit db 13,10,'hit any key to exit$'            
 msgInput1 db 13,10,13,10,'please enter the values in matrix 1:',13,10,'$'  
 msgInput2 db 13,10,'please enter the values in matrix 2:',13,10,'$'
 
@@ -50,21 +52,27 @@ start:
     call matrixInput
     
     push offset mat1
-    call asciiToNumber
-    
+    call asciiToNumber    
     lea dx,mat2
     push dx
     call asciiToNumber
-                   
-    push offset mat1
-    call numberToAscii 
+    
+    push 0
+    push 1
+    call multipy                        
     
     
 exit:
+    push offset msgExit
+    call print
+    mov ah,01
+    int 21h
+    push offset backspace
+    call print
     mov ah,4ch
     int 21h
 
-print proc
+print proc ;printing massage. paramenter: offset of massage
     push bp
     mov bp,sp
     push dx
@@ -77,8 +85,54 @@ print proc
     pop bp
     ret 2
 print endp
+
+multipy proc ;multupy row of matrix one in collumn of matrix two. parameters: collumn, row
+    push bp
+    mov bp,sp
+    push ax
+    push bx
+    push cx
+    push dx
     
-dimantionInput proc
+    mov al,[bp+6]
+    mul x1
+    mov bx,ax
+    add bx,[bp+4]
+    mov mat3[bx],0
+    
+    mov al,y1
+    mul [bp+4]
+    mov [bp+4],ax
+    mov cl,y1
+    add [bp+4],cl
+    mov dx,ax
+    
+    
+    multiping:
+        push bx
+        mov bx,dx
+        mov al,mat1[bx]
+        pop bx
+        mul mat2[bp+6]
+        add mat3[bx],al
+        
+        mov al,y2
+        add [bp+6],al
+        inc dx
+        cmp [bp+4],dx
+        jne multiping
+    
+    
+    pop dx
+    pop cx
+    pop bx
+    pop ax
+    pop bp
+    
+    ret 4
+multipy endp
+    
+dimantionInput proc ;get input of one matrix dimantion. paramenter: offset of a dimantion var
     push bp
     mov bp,sp
     push ax
@@ -104,7 +158,7 @@ dimantionInput proc
     ret 2
 dimantionInput endp
 
-matrixDimantionInput proc
+matrixDimantionInput proc ;get input of the both matrices' dimantions. no paramenters
     push offset msgSize
     call print
     
@@ -134,7 +188,7 @@ matrixDimantionInput proc
     ret
 matrixDimantionInput endp
 
-matrixInput proc
+matrixInput proc ;input of the values of a matrix. parameters: offset of massage, offset of x, offset of y, offset of matrix
     push bp
     mov bp,sp
     push dx
@@ -181,7 +235,7 @@ matrixInput proc
     ret 8    
 matrixInput endp
 
-asciiToNumber proc
+asciiToNumber proc ;convert values in matrix from ascii to numbers. parameter: offset of a matrix
     push bp
     mov bp,sp
     push bx
@@ -196,7 +250,7 @@ asciiToNumber proc
     ret 2
 asciiToNumber endp
 
-numberToAscii proc
+numberToAscii proc ;convert values in matrix from numbers to ascii. parameter: offset of a matrix
     push bp
     mov bp,sp
     push bx
