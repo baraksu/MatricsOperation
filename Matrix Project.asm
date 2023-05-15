@@ -18,6 +18,7 @@ space db ' $'
 msgExit db 13,10,'hit any key to exit$'            
 msgInput1 db 13,10,13,10,'please enter the values in matrix 1:',13,10,'$'  
 msgInput2 db 13,10,'please enter the values in matrix 2:',13,10,'$'
+msgMat3 db 13,10,'the multipied matrix is:',13,10,'$'
 
 .CODE
 start:
@@ -56,10 +57,29 @@ start:
     lea dx,mat2
     push dx
     call asciiToNumber
-    
-    push 0
-    push 1
-    call multipy                        
+        
+    xor cx,cx
+    xor ax,ax
+    mov cl,x1
+    i:
+        cmp cx,0
+        je next
+        mov al,y2  
+        dec cx
+        j: 
+            cmp ax,0
+            je i
+            dec ax
+            push ax
+            push cx         
+            call multipy
+            jmp j
+        jmp i
+            
+    next:
+    push offset msgMat3
+    call print
+    call printMat3                                    
     
     
 exit:
@@ -86,6 +106,62 @@ print proc ;printing massage. paramenter: offset of massage
     ret 2
 print endp
 
+printMat3 proc ;print mat3. no parameters
+    push bp
+    mov bp,sp
+    push ax
+    push bx
+    push cx
+    push dx
+    
+    xor cl,cl      
+    xor bx,bx
+    printing:
+        xor ax,ax
+        mov al,mat3[bx]
+        mov dl,100
+        div dl
+        mov dl,al
+        add dl,'0'
+        mov ah,2
+        int 21h
+        
+        xor ax,ax
+        mov al,mat3[bx]
+        mov dl,10
+        div dl
+        mov dh,ah
+        xor ah,ah
+        div dl
+        mov dl,ah
+        add dl,'0'
+        mov ah,2
+        int 21h 
+        mov dl,dh
+        add dl,'0'
+        int 21h
+        push offset space
+        call print
+        
+        inc cl
+        cmp cl,x1 ;to be changed
+        jne dontIncrease
+            push offset crlf
+            call print
+            xor cl,cl         
+        dontIncrease:            
+        inc bx
+        cmp mat3[bx],0ffh
+        jne printing           
+    
+    pop dx
+    pop cx      
+    pop bx
+    pop ax
+    pop bp
+    ret
+printMat3 endp
+
 multipy proc ;multupy row of matrix one in collumn of matrix two. parameters: collumn, row
     push bp
     mov bp,sp
@@ -95,12 +171,12 @@ multipy proc ;multupy row of matrix one in collumn of matrix two. parameters: co
     push dx
     
     mov al,[bp+6]
-    mul x1
+    mul x1 ;to be changed
     mov bx,ax
     add bx,[bp+4]
     mov mat3[bx],0
     
-    mov al,y1
+    mov al,y1                    
     mul [bp+4]
     mov [bp+4],ax
     mov cl,y1
@@ -112,8 +188,9 @@ multipy proc ;multupy row of matrix one in collumn of matrix two. parameters: co
         push bx
         mov bx,dx
         mov al,mat1[bx]
+        mov bx,[bp+6]
+        mul mat2[bx]
         pop bx
-        mul mat2[bp+6]
         add mat3[bx],al
         
         mov al,y2
