@@ -339,19 +339,4 @@ asciiToNumber proc ;convert values in matrix from ascii to numbers. parameter: o
     ret 2
 asciiToNumber endp
 
-numberToAscii proc ;convert values in matrix from numbers to ascii. parameter: offset of a matrix
-    push bp
-    mov bp,sp
-    push bx
-    mov bx,[bp+4]
-    looping1:
-        add [bx],'0'
-        inc bx
-        cmp [bx],0ffh
-        jne looping1
-    pop bx
-    pop bp
-    ret 2
-numberToAscii endp
-
 END
