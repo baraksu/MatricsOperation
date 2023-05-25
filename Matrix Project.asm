@@ -2,7 +2,8 @@
 .STACK 100h
 
 .DATA
-msgSize db 13,10,'please enter how many by how many do you want your matrix.',13,10,'numbers allowed: 1 to 9',13,10,'matrix 1: $'
+
+msgSize db 13,10,'please enter how many by how many do you want your matrix.',13,10,'numbers allowed: 1 to 6',13,10,'matrix 1: $'
 backspace db 8,32,8,'$'
 msgMat2 db 13,10,'matrix 2: $'
 by db ' by $'                 
@@ -10,15 +11,17 @@ x1 db ?
 y1 db ?
 x2 db ?
 y2 db ?
-mat1 db 82 dup(0FFh)
-mat2 db 82 dup(0FFh)
-mat3 db 82 dup(0FFh)
+mat1 db 44 dup(0FFh)
+mat2 db 44 dup(0FFh)
+mat3 db 44 dup(0FFh)
 crlf db 13,10,'$'
 space db ' $'
 msgExit db 13,10,'hit any key to exit$'            
 msgInput1 db 13,10,13,10,'please enter the values in matrix 1:',13,10,'$'  
 msgInput2 db 13,10,'please enter the values in matrix 2:',13,10,'$'
 msgMat3 db 13,10,'the multipied matrix is:',13,10,'$'
+msgLoading db 13,10,'loading$'
+dot db '.$'
 
 .CODE
 start:
@@ -52,6 +55,9 @@ start:
     push offset msgInput2
     call matrixInput
     
+    push offset msgLoading
+    call print
+    
     push offset mat1
     call asciiToNumber    
     lea dx,mat2
@@ -61,12 +67,16 @@ start:
     xor cx,cx
     xor ax,ax
     mov cl,x1
+    
+
     i:
         cmp cx,0
         je next
         mov al,y2  
         dec cx
-        j: 
+        j:
+            push offset dot
+            call print 
             cmp ax,0
             je i
             dec ax
@@ -76,7 +86,9 @@ start:
             jmp j
         jmp i
             
-    next:
+    next:     
+    push offset crlf
+    call print
     push offset msgMat3
     call print
     call printMat3                                    
@@ -144,7 +156,7 @@ printMat3 proc ;print mat3. no parameters
         call print
         
         inc cl
-        cmp cl,x1 ;to be changed
+        cmp cl,y2
         jne dontIncrease
             push offset crlf
             call print
@@ -170,10 +182,10 @@ multipy proc ;multupy row of matrix one in collumn of matrix two. parameters: co
     push cx
     push dx
     
-    mov al,[bp+6]
-    mul x1 ;to be changed
+    mov al,[bp+4]
+    mul y2
     mov bx,ax
-    add bx,[bp+4]
+    add bx,[bp+6]
     mov mat3[bx],0
     
     mov al,y1                    
@@ -226,7 +238,7 @@ dimantionInput proc ;get input of one matrix dimantion. paramenter: offset of a 
         mov [bx],al
         cmp [bx],'1'
         jb invalid
-        cmp [bx],'9'
+        cmp [bx],'6'
         ja invalid
     pop dx
     pop bx
@@ -289,7 +301,7 @@ matrixInput proc ;input of the values of a matrix. parameters: offset of massage
             int 21h
             cmp al,'1'
             jb invalid1
-            cmp al,'9'
+            cmp al,'6'
             ja invalid1
             mov [bx],al
             inc bx                        
