@@ -7,13 +7,13 @@ msgSize db 13,10,'please enter how many by how many do you want your matrix.',13
 backspace db 8,32,8,'$'
 msgMat2 db 13,10,'matrix 2: $'
 by db ' by $'                 
-x1 db ?
-y1 db ?
-x2 db ?
-y2 db ?
-mat1 db 44 dup(0FFh)
-mat2 db 44 dup(0FFh)
-mat3 db 44 dup(0FFh)
+x1 db ?    ;contains the horizotal length of the first matrix
+y1 db ?    ;contains the vertical length of the first matrix
+x2 db ?    ;contains the horizotal length of the second matrix
+y2 db ?    ;contains the vertical length of the second matrix
+mat1 db 44 dup(0FFh)  ;contains the values in the first inputed matrix
+mat2 db 44 dup(0FFh)  ;contains the values in the second inputed matrix
+mat3 db 44 dup(0FFh)  ;contains the values in the multipied matrix
 crlf db 13,10,'$'
 space db ' $'
 msgExit db 13,10,'hit any key to exit$'            
