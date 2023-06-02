@@ -2,27 +2,56 @@
 .STACK 100h
 
 .DATA
-msgSize db 13,10,'please enter how many by how many do you want your matrix.',13,10,'numbers allowed: 1 to 9',13,10,'matrix 1: $'
+msgSize db 13,10,'please enter how many by how many do you want your matrix.',13,10,'numbers allowed: 1 to 6',13,10,'matrix 1: $'
 backspace db 8,32,8,'$'
 msgMat2 db 13,10,'matrix 2: $'
 by db ' by $'                 
-x1 db ?
-y1 db ?
-x2 db ?
-y2 db ?
-mat1 db 82 dup(0FFh)
-mat2 db 82 dup(0FFh)
-mat3 db 82 dup(0FFh)
+x1 db ?    ;contains the horizotal length of the first matrix
+y1 db ?    ;contains the vertical length of the first matrix
+x2 db ?    ;contains the horizotal length of the second matrix
+y2 db ?    ;contains the vertical length of the second matrix
+mat1 db 44 dup(0FFh)  ;contains the values in the first inputed matrix
+mat2 db 44 dup(0FFh)  ;contains the values in the second inputed matrix
+mat3 db 44 dup(0FFh)  ;contains the values in the multipied matrix
 crlf db 13,10,'$'
 space db ' $'
 msgExit db 13,10,'hit any key to exit$'            
 msgInput1 db 13,10,13,10,'please enter the values in matrix 1:',13,10,'$'  
 msgInput2 db 13,10,'please enter the values in matrix 2:',13,10,'$'
+msgMat3 db 13,10,'the multipied matrix is:',13,10,'$'
+msgLoading db 13,10,'loading$'
+dot db '.$'
+msgBackSpace db 13,10,'you entered backspace, please try again:  $'
+msgStart1 db 13,10,'  __  __       _        _         ____                       _   _             $'
+msgStart2 db 13,10,' |  \/  |     | |      (_)       / __ \                     | | (_)            $'
+msgStart3 db 13,10,' | \  / | __ _| |_ _ __ ___  __ | |  | |_ __   ___ _ __ __ _| |_ _  ___  _ __  $'
+msgStart4 db 13,10,' | |\/| |/ _` | __| '__| \ \/ / | |  | | '_ \ / _ \ '__/ _` | __| |/ _ \| '_ \ $'
+msgStart5 db 13,10,' | |  | | (_| | |_| |  | |>  <  | |__| | |_) |  __/ | | (_| | |_| | (_) | | | |$'
+msgStart6 db 13,10,' |_|  |_|\__,_|\__|_|  |_/_/\_\  \____/| .__/ \___|_|  \__,_|\__|_|\___/|_| |_|$'
+msgStart7 db 13,10,'                                       | |                                     $'
+msgStart8 db 13,10,'                                       |_|                                      $',13,10,'$'
 
 .CODE
 start:
     mov ax,@data
     mov ds,ax
+    
+    push offset msgStart1
+    call print
+    push offset msgStart2
+    call print
+    push offset msgStart3
+    call print
+    push offset msgStart4
+    call print
+    push offset msgStart5
+    call print
+    push offset msgStart6
+    call print
+    push offset msgStart7
+    call print
+    push offset msgStart8
+    call print
     
     call matrixDimantionInput
     sub x1,'0'
@@ -51,15 +80,43 @@ start:
     push offset msgInput2
     call matrixInput
     
+    push offset msgLoading
+    call print
+    
     push offset mat1
     call asciiToNumber    
     lea dx,mat2
     push dx
     call asciiToNumber
+        
+    xor cx,cx
+    xor ax,ax
+    mov cl,x1
     
-    push 0
-    push 1
-    call multipy                        
+
+    i:
+        cmp cx,0
+        je next
+        mov al,y2  
+        dec cx
+        j:
+            push offset dot
+            call print 
+            cmp ax,0
+            je i
+            dec ax
+            push ax
+            push cx         
+            call multipy
+            jmp j
+        jmp i
+            
+    next:     
+    push offset crlf
+    call print
+    push offset msgMat3
+    call print
+    call printMat3                                    
     
     
 exit:
@@ -86,6 +143,62 @@ print proc ;printing massage. paramenter: offset of massage
     ret 2
 print endp
 
+printMat3 proc ;print mat3. no parameters
+    push bp
+    mov bp,sp
+    push ax
+    push bx
+    push cx
+    push dx
+    
+    xor cl,cl      
+    xor bx,bx
+    printing:
+        xor ax,ax
+        mov al,mat3[bx]
+        mov dl,100
+        div dl
+        mov dl,al
+        add dl,'0'
+        mov ah,2
+        int 21h
+        
+        xor ax,ax
+        mov al,mat3[bx]
+        mov dl,10
+        div dl
+        mov dh,ah
+        xor ah,ah
+        div dl
+        mov dl,ah
+        add dl,'0'
+        mov ah,2
+        int 21h 
+        mov dl,dh
+        add dl,'0'
+        int 21h
+        push offset space
+        call print
+        
+        inc cl
+        cmp cl,y2
+        jne dontIncrease
+            push offset crlf
+            call print
+            xor cl,cl         
+        dontIncrease:            
+        inc bx
+        cmp mat3[bx],0ffh
+        jne printing           
+    
+    pop dx
+    pop cx      
+    pop bx
+    pop ax
+    pop bp
+    ret
+printMat3 endp
+
 multipy proc ;multupy row of matrix one in collumn of matrix two. parameters: collumn, row
     push bp
     mov bp,sp
@@ -94,13 +207,13 @@ multipy proc ;multupy row of matrix one in collumn of matrix two. parameters: co
     push cx
     push dx
     
-    mov al,[bp+6]
-    mul x1
+    mov al,[bp+4]
+    mul y2
     mov bx,ax
-    add bx,[bp+4]
+    add bx,[bp+6]
     mov mat3[bx],0
     
-    mov al,y1
+    mov al,y1                    
     mul [bp+4]
     mov [bp+4],ax
     mov cl,y1
@@ -112,8 +225,9 @@ multipy proc ;multupy row of matrix one in collumn of matrix two. parameters: co
         push bx
         mov bx,dx
         mov al,mat1[bx]
+        mov bx,[bp+6]
+        mul mat2[bx]
         pop bx
-        mul mat2[bp+6]
         add mat3[bx],al
         
         mov al,y2
@@ -147,9 +261,14 @@ dimantionInput proc ;get input of one matrix dimantion. paramenter: offset of a 
         int 21h
         mov bx,[bp+4]
         mov [bx],al
+        cmp al,8
+        jne notBackSpace1
+            push offset msgBackSpace
+            call print
+        notBackSpace1:
         cmp [bx],'1'
         jb invalid
-        cmp [bx],'9'
+        cmp [bx],'6'
         ja invalid
     pop dx
     pop bx
@@ -210,9 +329,14 @@ matrixInput proc ;input of the values of a matrix. parameters: offset of massage
             continue: 
             mov ah,1
             int 21h
+            cmp al,8
+            jne notBackSpace
+                push offset msgBackSpace
+                call print
+            notBackSpace:
             cmp al,'1'
             jb invalid1
-            cmp al,'9'
+            cmp al,'6'
             ja invalid1
             mov [bx],al
             inc bx                        
@@ -249,20 +373,5 @@ asciiToNumber proc ;convert values in matrix from ascii to numbers. parameter: o
     pop bp
     ret 2
 asciiToNumber endp
-
-numberToAscii proc ;convert values in matrix from numbers to ascii. parameter: offset of a matrix
-    push bp
-    mov bp,sp
-    push bx
-    mov bx,[bp+4]
-    looping1:
-        add [bx],'0'
-        inc bx
-        cmp [bx],0ffh
-        jne looping1
-    pop bx
-    pop bp
-    ret 2
-numberToAscii endp
 
 END
