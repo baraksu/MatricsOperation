@@ -2,6 +2,10 @@
 .STACK 100h
 
 .DATA
+<<<<<<< HEAD
+=======
+
+>>>>>>> 1a27b7b591e4c38569fce688816f8f7b4e2b6f1c
 msgSize db 13,10,'please enter how many by how many do you want your matrix.',13,10,'numbers allowed: 1 to 6',13,10,'matrix 1: $'
 backspace db 8,32,8,'$'
 msgMat2 db 13,10,'matrix 2: $'
@@ -21,6 +25,7 @@ msgInput2 db 13,10,'please enter the values in matrix 2:',13,10,'$'
 msgMat3 db 13,10,'the multipied matrix is:',13,10,'$'
 msgLoading db 13,10,'loading$'
 dot db '.$'
+<<<<<<< HEAD
 msgBackSpace db 13,10,'you entered backspace, please try again:  $'
 msgStart1 db 13,10,'  __  __       _        _         ____                       _   _             $'
 msgStart2 db 13,10,' |  \/  |     | |      (_)       / __ \                     | | (_)            $'
@@ -30,6 +35,8 @@ msgStart5 db 13,10,' | |  | | (_| | |_| |  | |>  <  | |__| | |_) |  __/ | | (_| 
 msgStart6 db 13,10,' |_|  |_|\__,_|\__|_|  |_/_/\_\  \____/| .__/ \___|_|  \__,_|\__|_|\___/|_| |_|$'
 msgStart7 db 13,10,'                                       | |                                     $'
 msgStart8 db 13,10,'                                       |_|                                      $',13,10,'$'
+=======
+>>>>>>> 1a27b7b591e4c38569fce688816f8f7b4e2b6f1c
 
 .CODE
 start:
